@@ -54,26 +54,26 @@ router.post('/Createuser', [
 
 // Route 2: Authenticating a user using: POST "/api/auth/login"
 router.post('/login', async (req, res) => {
-  try {
-    console.log("✅ LOGIN HIT");
-    console.log("Request Body:", req.body);
+    try {
+        console.log("LOGIN HIT");
+        console.log("Request Body:", req.body);
 
-    const user = await User.findOne({ EmailID: req.body.EmailID });
-    console.log("User found:", user);
+        const user = await User.findOne({ EmailID: req.body.EmailID });
+        console.log("User found:", user);
 
-    if (!user) return res.status(400).json({ error: "User not found" });
+        if (!user) return res.status(400).json({ error: "User not found" });
 
-    const passwordMatch = await bcrypt.compare(req.body.Password, user.Password);
-    console.log("Password match:", passwordMatch);
+        const passwordMatch = await bcrypt.compare(req.body.Password, user.Password);
+        console.log("Password match:", passwordMatch);
 
-    if (!passwordMatch) return res.status(400).json({ error: "Incorrect password" });
+        if (!passwordMatch) return res.status(400).json({ error: "Incorrect password" });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
-    res.json({ token });
-  } catch (err) {
-    console.error("Login error:", err);
-    res.status(500).send("Server error");
-  }
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+        res.json({ success: true, authToken: token });
+    } catch (err) {
+        console.error("Login error:", err);
+        res.status(500).send("Server error");
+    }
 });
 
 
@@ -85,7 +85,7 @@ router.post('/getuser', fetchUser, async (req, res) => {
         res.send(user);
     } catch (error) {
         console.log(error);
-   res.status(500).json({ error: "Internal error occurred" });
+        res.status(500).json({ error: "Internal error occurred" });
     }
 });
 
