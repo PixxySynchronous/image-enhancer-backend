@@ -1,12 +1,18 @@
 const mongoose = require('mongoose');
-const mongURI = "mongodb://localhost:27017/imageenehancer";
+
+// Get Mongo URI from env or fallback to local
+const mongoURI = process.env.MONGO_URI || "mongodb://localhost:27017/imageenhancer";
 
 const connectToMongo = async () => {
     try {
-        await mongoose.connect(mongURI);
-        console.log("Mongoose connected successfully");
+        await mongoose.connect(mongoURI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
+        console.log("MongoDB connected successfully");
     } catch (error) {
-        console.error("Mongoose connection failed:", error);
+        console.error("MongoDB connection failed:", error.message);
+        process.exit(1); // Exit process if connection fails
     }
 };
 
