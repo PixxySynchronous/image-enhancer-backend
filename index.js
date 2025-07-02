@@ -14,6 +14,11 @@ connectToMongo();
 // Middleware
 app.use(cors()); // <== ✅ Enable CORS
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 
 // Routes which are available
 app.use('/api/auth', require('./routes/auth'));

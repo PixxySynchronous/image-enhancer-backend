@@ -53,52 +53,27 @@ router.post('/Createuser', [
 });
 
 // Route 2: Authenticating a user using: POST "/api/auth/login"
-router.post('/login', [
-    body('EmailID', "Enter a valid email").isEmail(),
-    body('Password', 'Password cannot be blank').exists()
-], async (req, res) => {
-    let success = false;
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.status(400).json({ success, errors: errors.array() });
-    }
+router.post('/login', async (req, res) => {
+  try {
+    console.log("✅ LOGIN HIT");
+    console.log("Request Body:", req.body);
 
-    const { EmailID, Password } = req.body;
+    const user = await User.findOne({ EmailID: req.body.EmailID });
+    console.log("User found:", user);
 
-    try {
-        console.log("Login attempt for:", EmailID);
+    if (!user) return res.status(400).json({ error: "User not found" });
 
-        // Normalize email
-        let user = await User.findOne({ EmailID: EmailID.toLowerCase() });
+    const passwordMatch = await bcrypt.compare(req.body.Password, user.Password);
+    console.log("Password match:", passwordMatch);
 
-        if (!user) {
-            console.log("No user found with email:", EmailID);
-            return res.status(400).json({ success, error: "Invalid credentials" });
-        }
+    if (!passwordMatch) return res.status(400).json({ error: "Incorrect password" });
 
-        console.log("User found. Comparing passwords...");
-        const passwordCompare = await bcrypt.compare(Password, user.Password);
-
-        if (!passwordCompare) {
-            console.log("Password mismatch for user:", EmailID);
-            return res.status(400).json({ success, error: "Invalid credentials" });
-        }
-
-        const data = {
-            user: {
-                id: user.id
-            }
-        };
-
-        const authToken = jwt.sign(data, JWT_SECRET);
-        success = true;
-        console.log("Login successful for:", EmailID);
-        res.json({ success, authToken });
-
-    } catch (error) {
-        console.error("Login error:", error);
-        res.status(500).json({ success, error: "Internal server error" });
-    }
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+    res.json({ token });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).send("Server error");
+  }
 });
 
 
