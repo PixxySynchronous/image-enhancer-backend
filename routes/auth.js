@@ -66,14 +66,22 @@ router.post('/login', [
     const { EmailID, Password } = req.body;
 
     try {
-        let user = await User.findOne({ EmailID });
+        console.log("Login attempt for:", EmailID);
+
+        // Normalize email
+        let user = await User.findOne({ EmailID: EmailID.toLowerCase() });
+
         if (!user) {
-            return res.status(400).json({ success, error: "Enter correct information" });
+            console.log("No user found with email:", EmailID);
+            return res.status(400).json({ success, error: "Invalid credentials" });
         }
 
+        console.log("User found. Comparing passwords...");
         const passwordCompare = await bcrypt.compare(Password, user.Password);
+
         if (!passwordCompare) {
-            return res.status(400).json({ success, error: "Enter correct information" });
+            console.log("Password mismatch for user:", EmailID);
+            return res.status(400).json({ success, error: "Invalid credentials" });
         }
 
         const data = {
@@ -84,12 +92,15 @@ router.post('/login', [
 
         const authToken = jwt.sign(data, JWT_SECRET);
         success = true;
+        console.log("Login successful for:", EmailID);
         res.json({ success, authToken });
+
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success, error: "Some error occurred" });
+        console.error("Login error:", error);
+        res.status(500).json({ success, error: "Internal server error" });
     }
 });
+
 
 // Route 3: Getting logged in user details using: POST "/api/auth/getuser"
 router.post('/getuser', fetchUser, async (req, res) => {
