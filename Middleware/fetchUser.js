@@ -20,7 +20,7 @@ const fetchUser = (req, res, next) => {
 
         // 'data.user' contains the user info (e.g., user ID)
         // Attach it to req so we can access it later
-        req.user = data.user;
+        req.user = { id: data.id };
 
         // Proceed to the next middleware/route handler
         next();
